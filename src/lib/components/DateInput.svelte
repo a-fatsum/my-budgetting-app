@@ -4,10 +4,14 @@
 
 	let rawValue: string = ''; // This will bind directly to the input field.
 
-	export let value: string | null = null; // External value prop (binded from parent).
-	export let date: Temporal.PlainDate | null = null; // Date prop that is set based on 'value'.
-	export let label: string = ''; // Optional label.
-	export let id: string = nanoid(); // Unique ID for the input field.
+	// External value prop (binded from parent)
+	export let value: string | null = null;
+	// Date prop that is set based on 'value'
+	export let date: Temporal.PlainDate | null = null;
+	// Optional label
+	export let label: string = '';
+	// Unique ID for the input field
+	export let id: string = nanoid();
 
 	// Update rawValue when 'value' changes
 	$: {
@@ -16,12 +20,16 @@
 		}
 	}
 
-	// Update 'date' based on 'value' (string) whenever 'value' changes
+	// Update 'date' based on 'rawValue' (string) whenever 'rawValue' changes
 	$: {
 		if (rawValue) {
-			date = Temporal.PlainDate.from(rawValue);
+			try {
+				date = Temporal.PlainDate.from(rawValue); // Convert rawValue to Temporal date
+			} catch (error) {
+				date = null; // If the rawValue is invalid, set date to null
+			}
 		} else {
-			date = null;
+			date = null; // Reset date when rawValue is empty
 		}
 	}
 
