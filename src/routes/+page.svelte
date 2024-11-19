@@ -3,131 +3,83 @@
 	import DateInput from '$lib/components/DateInput.svelte';
 	import DropDown from '$lib/components/DropDown.svelte';
 	import Input from '$lib/components/Input.svelte';
-	import { onMount } from 'svelte';
 	import { Temporal } from '@js-temporal/polyfill';
+	import { arrayOfIncomeInputData } from '../stores/stores';
+	import type { IncomeInputData } from '../stores/types';
 
-	// Input fields
 	let regularIncome: number = 0;
 	let monthlySavings: number = 0;
 	let incomeStartDate: Temporal.PlainDate;
 	let incomePaymentFrequency: string = 'weekly'; // Initialized with a valid value
 	let datesOfRegularIncome: string[] = [];
 	let regularBalances: number[] = [];
+	let data: IncomeInputData[] = [];
+
+	// Subscribe to the store
+	arrayOfIncomeInputData.subscribe((value) => {
+		data = value;
+	});
 
 	// Function to generate income dates
 	function generateDates() {
 		if (!incomeStartDate) return; // Don't generate dates if no start date is provided
-		let regularBalancesResults: number[] = [];
-		const start = incomeStartDate;
+		const start = Temporal.PlainDate.from(incomeStartDate);
 		let result: string[] = [];
-		let startBalanceTotal: number = 0;
+		let balances: number[] = [];
+		let total: number = 0;
 
 		switch (incomePaymentFrequency) {
 			case 'weekly':
 				for (let i = 0; i < 52; i++) {
-					const nextDate = start.add({ weeks: i });
-
-					// Fix: No direct comparison of Temporal.PlainDate objects.
-					// Instead of comparing with `==` or `===`, use equals or compare()
-					if (nextDate.equals(incomeStartDate)) {
-						// If the dates are the same (for example), do something special here.
-						console.log('The dates are equal!');
-					}
-
-					result.push(
-						nextDate.toLocaleString('en-AU', {
-							weekday: 'long',
-							year: 'numeric',
-							month: 'numeric',
-							day: 'numeric'
-						})
-					);
-					startBalanceTotal += Number(regularIncome);
-					regularBalancesResults.push(startBalanceTotal);
+					const nextDate = start.add({ days: i * 7 });
+					result.push(nextDate.toString());
+					total += Number(regularIncome);
+					balances.push(total);
 				}
 				break;
-
 			case 'fortnightly':
 				for (let i = 0; i < 26; i++) {
-					const nextDate = start.add({ weeks: i * 2 });
-
-					// Fix: Using .equals() or .compare() to compare dates
-					if (nextDate.equals(incomeStartDate)) {
-						console.log('The dates are equal!');
-					}
-
-					result.push(
-						nextDate.toLocaleString('en-AU', {
-							weekday: 'long',
-							year: 'numeric',
-							month: 'long',
-							day: 'numeric'
-						})
-					);
-					startBalanceTotal += Number(regularIncome);
-					regularBalancesResults.push(startBalanceTotal);
+					const nextDate = start.add({ days: i * 14 });
+					result.push(nextDate.toString());
+					total += Number(regularIncome);
+					balances.push(Number(total));
 				}
 				break;
-
 			case 'monthly':
 				for (let i = 0; i < 12; i++) {
 					const nextDate = start.add({ months: i });
-
-					// Fix: Again using .equals() or .compare() to compare dates
-					if (nextDate.equals(incomeStartDate)) {
-						console.log('The dates are equal!');
-					}
-
-					result.push(
-						nextDate.toLocaleString('en-AU', {
-							weekday: 'long',
-							year: 'numeric',
-							month: 'long',
-							day: 'numeric'
-						})
-					);
-					startBalanceTotal += Number(regularIncome);
-					regularBalancesResults.push(startBalanceTotal);
+					result.push(nextDate.toString());
+					total += Number(regularIncome);
+					balances.push(Number(total));
 				}
 				break;
-
 			default:
 				break;
 		}
 
 		datesOfRegularIncome = result;
-		regularBalances = [...regularBalancesResults];
-		console.log(incomeInputData);
+		regularBalances = balances;
 	}
-	//
 
-	let incomeInputData: {
-		incomeFrequency?: string;
-		// incomeAmount?: number;
-		// incomeDate?: Temporal.PlainDate;
-	};
-
-	// Function to add data to the object
+	// Add data to the store
 	function addToIncomeInputData() {
-		// incomeInputData.incomeFrequency = incomePaymentFrequency;
-		// incomeInputData.incomeAmount = regularIncome;
-		// incomeInputData.incomeDate = incomeStartDate;
-		console.log(incomeInputData);
-	}
+		const newEntry: IncomeInputData = {
+			incomeFrequency: incomePaymentFrequency,
+			incomeAmount: regularIncome,
+			incomeDate: incomeStartDate
+		};
 
-	// Function to clear the object
-	function clearData() {
-		incomeInputData = {}; // Reset the object to an empty state
+		arrayOfIncomeInputData.update((current) => [...current, newEntry]);
 	}
 </script>
 
 <div class="shell-wrapper flex text-sm">
-	<div class="inputs rounder-md flex h-screen w-auto flex-col justify-around border p-4">
+	<div class="inputs flex h-screen w-auto flex-col justify-around rounded-md border p-4">
 		<div class="incomes flex flex-col justify-around border p-4">
 			<div class="reg-income flex flex-col gap-2 p-2">
-				<Input label={'Regular Income'} bind:value={regularIncome} />
+				<Input label="Regular Income" bind:value={regularIncome} />
 				<DropDown
-					label={'Frequency'}
+					label="Frequency"
 					options={[
 						{ value: 'weekly', text: 'Weekly' },
 						{ value: 'fortnightly', text: 'Fortnightly' },
@@ -135,13 +87,12 @@
 					]}
 					bind:value={incomePaymentFrequency}
 				/>
-				<DateInput label={'Next Due'} bind:date={incomeStartDate} />
+				<DateInput label="Next Due" bind:date={incomeStartDate} />
 			</div>
 			<button
 				class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
 				on:click={() => {
 					generateDates();
-					// storeInLocalStorage();
 					addToIncomeInputData();
 				}}
 			>
@@ -150,10 +101,10 @@
 		</div>
 		<div class="expenses flex flex-col justify-around border p-2">
 			<div class="reg-expenses">
-				<Input label={'Regular Expenses'} />
+				<Input label="Regular Expenses" />
 			</div>
 			<div class="other-expenses">
-				<Input label={'Other Expenses'} />
+				<Input label="Other Expenses" />
 			</div>
 		</div>
 	</div>
@@ -170,10 +121,14 @@
 		<div class="display-bottom m-8 flex w-auto flex-col border border-gray-200">
 			<div class="flex w-auto flex-col gap-2 border border-gray-200 p-4">
 				<p>Income Added:</p>
-				<p>{regularIncome}</p>
-				<p>{incomePaymentFrequency}</p>
-				<p>{incomeStartDate}</p>
-				{incomeInputData}
+				<ul>
+					{#each data as entry, index}
+						<li>
+							Entry {index + 1}: Frequency: {entry.incomeFrequency}, Amount: {entry.incomeAmount},
+							Date: {entry.incomeDate?.toString() || 'N/A'}
+						</li>
+					{/each}
+				</ul>
 			</div>
 			<h3>Regular Income Dates</h3>
 			<div class="flex w-auto flex-wrap gap-4">
