@@ -14,6 +14,8 @@
 	let datesOfRegularIncome: string[] = [];
 	let regularBalances: number[] = [];
 	let data: IncomeInputData[] = [];
+	let regularIncomeLabel: string | '';
+	let incomeLabels: string[] = [];
 
 	// Subscribe to the store
 	arrayOfIncomeInputData.subscribe((value) => {
@@ -35,6 +37,7 @@
 					result.push(nextDate.toString());
 					total += Number(regularIncome);
 					balances.push(total);
+					incomeLabels.push(regularIncomeLabel);
 				}
 				break;
 			case 'fortnightly':
@@ -43,6 +46,7 @@
 					result.push(nextDate.toString());
 					total += Number(regularIncome);
 					balances.push(Number(total));
+					incomeLabels.push(regularIncomeLabel);
 				}
 				break;
 			case 'monthly':
@@ -51,6 +55,7 @@
 					result.push(nextDate.toString());
 					total += Number(regularIncome);
 					balances.push(Number(total));
+					incomeLabels.push(regularIncomeLabel);
 				}
 				break;
 			default:
@@ -77,6 +82,8 @@
 	<div class="inputs flex h-screen w-auto flex-col justify-around rounded-md border p-4">
 		<div class="incomes flex flex-col justify-around border p-4">
 			<div class="reg-income flex flex-col gap-2 p-2">
+				<Input label="Regular Income Label" bind:value={regularIncomeLabel} />
+
 				<Input label="Regular Income" bind:value={regularIncome} />
 				<DropDown
 					label="Frequency"
@@ -118,29 +125,29 @@
 				</div>
 			{/each}
 		</div>
-		<div class="display-bottom m-8 flex w-auto flex-col border border-gray-200">
-			<div class="flex w-auto flex-col gap-2 border border-gray-200 p-4">
+		<div class="display-bottom m-8 flex flex-col border border-gray-200">
+			<div class="flex flex-col gap-2 border border-gray-200 bg-[#e3f2fd] p-4">
 				<p>Income Added:</p>
 				<ul>
-					{#each data as entry, index}
+					{#each data as entry, i}
 						<li>
-							Entry {index + 1}: Frequency: {entry.incomeFrequency}, Amount: {entry.incomeAmount},
-							Date: {entry.incomeDate?.toString() || 'N/A'}
+							Entry {i + 1}: {incomeLabels[i]}
+							{entry.incomeFrequency}, Amount: {entry.incomeAmount}, Date: {entry.incomeDate?.toString() ||
+								'N/A'}
 						</li>
 					{/each}
 				</ul>
 			</div>
-			<h3>Regular Income Dates</h3>
-			<div class="flex w-auto flex-wrap gap-4">
-				<ul class="flex-1 p-2 lg:w-auto">
+			<h3>Regular Income Dates XXXX</h3>
+			<div class="flex bg-[#64b5f6]">
+				<ul class="w-auto bg-[#ff595e] p-2 lg:w-auto">
 					{#each datesOfRegularIncome as date}
-						<li class="border p-2">{date}</li>
+						<li class="p-2">{date}</li>
 					{/each}
 				</ul>
-
-				<ul class="flex-1 p-2 lg:w-auto">
+				<ul class="w-auto p-2 lg:w-auto">
 					{#each regularBalances as regBalance}
-						<li class="border p-2">{regBalance}</li>
+						<li class="p-2">{regBalance}</li>
 					{/each}
 				</ul>
 			</div>
