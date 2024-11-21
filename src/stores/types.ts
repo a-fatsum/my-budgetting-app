@@ -6,6 +6,7 @@ import { Temporal } from '@js-temporal/polyfill';
 // 	incomeDate?: Temporal.PlainDate;
 // };
 export type IncomeInputData = {
+	incomeLabel?: string;
 	incomeFrequency?: string;
 	incomeAmount?: number;
 	incomeDate?: Temporal.PlainDate;

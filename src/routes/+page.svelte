@@ -14,8 +14,7 @@
 	let datesOfRegularIncome: string[] = [];
 	let regularBalances: number[] = [];
 	let data: IncomeInputData[] = [];
-	let regularIncomeLabel: string | null = null;
-	let incomeLabels: string[] = [];
+	let regularIncomeLabel: string;
 
 	// Subscribe to the store
 	arrayOfIncomeInputData.subscribe((value) => {
@@ -24,44 +23,35 @@
 
 	// Function to generate income dates
 	function generateDates() {
-		if (!incomeStartDate || !regularIncomeLabel) return; // Don't generate dates if no start date is provided
+		if (!incomeStartDate) return; // Don't generate dates if no start date is provided
 		const start = Temporal.PlainDate.from(incomeStartDate);
 		let result: string[] = [];
 		let balancesOnIncomeDates: number[] = [];
 		let total: number = 0;
-		let incomeLabel: string | null = null;
-		let incomeLabelsArray: string[] = [];
-		incomeLabel = regularIncomeLabel;
 
 		switch (incomePaymentFrequency) {
 			case 'weekly':
 				for (let i = 0; i < 52; i++) {
 					const nextDate = start.add({ days: i * 7 });
-					result.push(nextDate.toString());
+					result.push(nextDate.toLocaleString());
 					total += Number(regularIncome);
 					balancesOnIncomeDates.push(total);
-					// incomeLabel = regularIncomeLabel;
-					incomeLabelsArray.push(incomeLabel);
 				}
 				break;
 			case 'fortnightly':
 				for (let i = 0; i < 26; i++) {
 					const nextDate = start.add({ days: i * 14 });
-					result.push(nextDate.toString());
+					result.push(nextDate.toLocaleString());
 					total += Number(regularIncome);
 					balancesOnIncomeDates.push(Number(total));
-					// incomeLabel = regularIncomeLabel;
-					incomeLabelsArray.push(incomeLabel);
 				}
 				break;
 			case 'monthly':
 				for (let i = 0; i < 12; i++) {
 					const nextDate = start.add({ months: i });
-					result.push(nextDate.toString());
+					result.push(nextDate.toLocaleString());
 					total += Number(regularIncome);
 					balancesOnIncomeDates.push(Number(total));
-					// incomeLabel = regularIncomeLabel;
-					incomeLabelsArray.push(incomeLabel);
 				}
 				break;
 			default:
@@ -70,12 +60,12 @@
 
 		datesOfRegularIncome = result;
 		regularBalances = balancesOnIncomeDates;
-		incomeLabels = incomeLabelsArray;
 	}
 
 	// Add data to the store
 	function addToIncomeInputData() {
 		const newEntry: IncomeInputData = {
+			incomeLabel: regularIncomeLabel,
 			incomeFrequency: incomePaymentFrequency,
 			incomeAmount: regularIncome,
 			incomeDate: incomeStartDate
@@ -138,16 +128,15 @@
 				<ul>
 					{#each data as entry, i}
 						<li>
-							Entry {i + 1}: {incomeLabels[i]}
-							{entry.incomeFrequency}, Amount: {entry.incomeAmount}, Date: {entry.incomeDate?.toString() ||
-								'N/A'}
+							Entry {i + 1}: NAME/LABEL {entry.incomeLabel}, {entry.incomeFrequency}, Amount: {entry.incomeAmount},
+							Date: {entry.incomeDate?.toLocaleString() || 'N/A'}
 						</li>
 					{/each}
 				</ul>
 			</div>
 			<h3>Regular Income Dates XXXX</h3>
-			<div class="flex bg-[#64b5f6]">
-				<ul class="w-auto bg-[#ff595e] p-2 lg:w-auto">
+			<div class="flex">
+				<ul class="w-auto p-2 lg:w-auto">
 					{#each datesOfRegularIncome as date}
 						<li class="p-2">{date}</li>
 					{/each}
