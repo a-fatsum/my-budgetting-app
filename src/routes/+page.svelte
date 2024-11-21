@@ -14,7 +14,7 @@
 	let datesOfRegularIncome: string[] = [];
 	let regularBalances: number[] = [];
 	let data: IncomeInputData[] = [];
-	let regularIncomeLabel: string | '';
+	let regularIncomeLabel: string | null = null;
 	let incomeLabels: string[] = [];
 
 	// Subscribe to the store
@@ -24,11 +24,14 @@
 
 	// Function to generate income dates
 	function generateDates() {
-		if (!incomeStartDate) return; // Don't generate dates if no start date is provided
+		if (!incomeStartDate || !regularIncomeLabel) return; // Don't generate dates if no start date is provided
 		const start = Temporal.PlainDate.from(incomeStartDate);
 		let result: string[] = [];
-		let balances: number[] = [];
+		let balancesOnIncomeDates: number[] = [];
 		let total: number = 0;
+		let incomeLabel: string | null = null;
+		let incomeLabelsArray: string[] = [];
+		incomeLabel = regularIncomeLabel;
 
 		switch (incomePaymentFrequency) {
 			case 'weekly':
@@ -36,8 +39,9 @@
 					const nextDate = start.add({ days: i * 7 });
 					result.push(nextDate.toString());
 					total += Number(regularIncome);
-					balances.push(total);
-					incomeLabels.push(regularIncomeLabel);
+					balancesOnIncomeDates.push(total);
+					// incomeLabel = regularIncomeLabel;
+					incomeLabelsArray.push(incomeLabel);
 				}
 				break;
 			case 'fortnightly':
@@ -45,8 +49,9 @@
 					const nextDate = start.add({ days: i * 14 });
 					result.push(nextDate.toString());
 					total += Number(regularIncome);
-					balances.push(Number(total));
-					incomeLabels.push(regularIncomeLabel);
+					balancesOnIncomeDates.push(Number(total));
+					// incomeLabel = regularIncomeLabel;
+					incomeLabelsArray.push(incomeLabel);
 				}
 				break;
 			case 'monthly':
@@ -54,8 +59,9 @@
 					const nextDate = start.add({ months: i });
 					result.push(nextDate.toString());
 					total += Number(regularIncome);
-					balances.push(Number(total));
-					incomeLabels.push(regularIncomeLabel);
+					balancesOnIncomeDates.push(Number(total));
+					// incomeLabel = regularIncomeLabel;
+					incomeLabelsArray.push(incomeLabel);
 				}
 				break;
 			default:
@@ -63,7 +69,8 @@
 		}
 
 		datesOfRegularIncome = result;
-		regularBalances = balances;
+		regularBalances = balancesOnIncomeDates;
+		incomeLabels = incomeLabelsArray;
 	}
 
 	// Add data to the store
