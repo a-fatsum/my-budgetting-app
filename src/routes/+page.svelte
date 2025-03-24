@@ -87,7 +87,8 @@
 					options={[
 						{ value: 'weekly', text: 'Weekly' },
 						{ value: 'fortnightly', text: 'Fortnightly' },
-						{ value: 'monthly', text: 'Monthly' }
+						{ value: 'monthly', text: 'Monthly' },
+						{ value: 'periodically', text: 'Periodically' }
 					]}
 					bind:value={incomePaymentFrequency}
 				/>
