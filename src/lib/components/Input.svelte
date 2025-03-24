@@ -6,7 +6,7 @@
 	export let inputType: string = 'text'; // Default to 'text' if not provided
 	export let label: string = '';
 	export let id: string = nanoid();
-	export let value: number = 0;
+	export let value: number | string = 0;
 	// export let date: Date | null = null;
 	// export let max: number | null = null;
 

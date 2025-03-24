@@ -9,9 +9,10 @@
 
 	let regularIncome: number = 0;
 	let monthlySavings: number = 0;
-	let incomeStartDate: Temporal.PlainDate;
+	let incomeDate: Temporal.PlainDate | null = null;
 	let incomePaymentFrequency: string = 'weekly'; // Initialized with a valid value
-	let datesOfRegularIncome: string[] = [];
+
+	let datesOfRegularIncome: Temporal.PlainDate[] = [];
 	let regularBalances: number[] = [];
 	let data: IncomeInputData[] = [];
 	let regularIncomeLabel: string;
@@ -23,43 +24,47 @@
 
 	// Function to generate income dates
 	function generateDates() {
-		if (!incomeStartDate) return; // Don't generate dates if no start date is provided
-		const start = Temporal.PlainDate.from(incomeStartDate);
-		let result: string[] = [];
-		let balancesOnIncomeDates: number[] = [];
-		let total: number = 0;
+		if (!incomeDate) return; // Don't generate dates if no start date is provided
+		const start = Temporal.PlainDate.from(incomeDate);
+		let result: Temporal.PlainDate[] = [];
 
 		switch (incomePaymentFrequency) {
 			case 'weekly':
 				for (let i = 0; i < 52; i++) {
 					const nextDate = start.add({ days: i * 7 });
-					result.push(nextDate.toLocaleString());
-					total += Number(regularIncome);
-					balancesOnIncomeDates.push(total);
+					result.push(nextDate);
 				}
 				break;
 			case 'fortnightly':
 				for (let i = 0; i < 26; i++) {
 					const nextDate = start.add({ days: i * 14 });
-					result.push(nextDate.toLocaleString());
-					total += Number(regularIncome);
-					balancesOnIncomeDates.push(Number(total));
+					result.push(nextDate);
 				}
 				break;
 			case 'monthly':
 				for (let i = 0; i < 12; i++) {
 					const nextDate = start.add({ months: i });
-					result.push(nextDate.toLocaleString());
-					total += Number(regularIncome);
-					balancesOnIncomeDates.push(Number(total));
+					result.push(nextDate);
 				}
 				break;
 			default:
 				break;
 		}
-
 		datesOfRegularIncome = result;
-		regularBalances = balancesOnIncomeDates;
+		calculateBalances(datesOfRegularIncome);
+	}
+
+	// Calculate balances
+	function calculateBalances(dates: Temporal.PlainDate[]) {
+		regularBalances = [];
+		regularBalances = dates.map((date, i) => {
+			let balance = +regularIncome;
+
+			balance += regularIncome * i; // Increment by regularIncome * index
+
+			return balance;
+		});
+		return regularBalances;
 	}
 
 	// Add data to the store
@@ -68,7 +73,7 @@
 			incomeLabel: regularIncomeLabel,
 			incomeFrequency: incomePaymentFrequency,
 			incomeAmount: regularIncome,
-			incomeDate: incomeStartDate
+			incomeDate: incomeDate
 		};
 
 		arrayOfIncomeInputData.update((current) => [...current, newEntry]);
@@ -92,7 +97,7 @@
 					]}
 					bind:value={incomePaymentFrequency}
 				/>
-				<DateInput label="Next Due" bind:date={incomeStartDate} />
+				<DateInput label="Next Due" bind:date={incomeDate} />
 			</div>
 			<button
 				class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
@@ -124,27 +129,28 @@
 			{/each}
 		</div>
 		<div class="display-bottom m-8 flex flex-col border border-gray-200">
-			<div class="flex flex-col gap-2 border border-gray-200 bg-[#e3f2fd] p-4">
+			<div class=" border border-gray-200 p-1">
 				<p>Income Added:</p>
-				<ul>
+				<ul class="mt-4 flex flex-col gap-2">
 					{#each data as entry, i}
-						<li>
-							Entry {i + 1}: NAME/LABEL {entry.incomeLabel}, {entry.incomeFrequency}, Amount: {entry.incomeAmount},
-							Date: {entry.incomeDate?.toLocaleString() || 'N/A'}
+						<li class="border p-2">
+							{entry.incomeLabel}, {entry.incomeFrequency}, ${entry.incomeAmount}, Start: {entry.incomeDate?.toLocaleString() ||
+								'N/A'}
 						</li>
 					{/each}
 				</ul>
 			</div>
+			<!--  -->
 			<h3>Regular Income Dates XXXX</h3>
 			<div class="flex">
 				<ul class="w-auto p-2 lg:w-auto">
 					{#each datesOfRegularIncome as date}
-						<li class="p-2">{date}</li>
+						Date: <li class="p-2">{date.toLocaleString()}</li>
 					{/each}
 				</ul>
 				<ul class="w-auto p-2 lg:w-auto">
 					{#each regularBalances as regBalance}
-						<li class="p-2">{regBalance}</li>
+						Balance: <li class="p-2">{regBalance}</li>
 					{/each}
 				</ul>
 			</div>
