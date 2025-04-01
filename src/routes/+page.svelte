@@ -10,7 +10,7 @@
 	let regularIncome: number = 0;
 	let monthlySavings: number = 0;
 	let incomeDate: Temporal.PlainDate | null = null;
-	let incomePaymentFrequency: string = 'weekly'; // Initialized with a valid value
+	let incomePaymentFrequency: string = 'weekly';
 
 	let datesOfRegularIncome: Temporal.PlainDate[] = [];
 	let regularBalances: number[] = [];
@@ -23,8 +23,8 @@
 	});
 
 	// Function to generate income dates
-	function generateDates() {
-		if (!incomeDate) return; // Don't generate dates if no start date is provided
+	function generateDates(incomeDate: Temporal.PlainDate, incomePaymentFrequency: string) {
+		// if (!incomeDate) return; // Don't generate dates if no start date is provided
 		const start = Temporal.PlainDate.from(incomeDate);
 		let result: Temporal.PlainDate[] = [];
 
@@ -54,19 +54,6 @@
 		calculateBalances(datesOfRegularIncome);
 	}
 
-	// Calculate balances
-	function calculateBalances(dates: Temporal.PlainDate[]) {
-		regularBalances = [];
-		regularBalances = dates.map((date, i) => {
-			let balance = +regularIncome;
-
-			balance += regularIncome * i; // Increment by regularIncome * index
-
-			return balance;
-		});
-		return regularBalances;
-	}
-
 	// Add data to the store
 	function addToIncomeInputData() {
 		const newEntry: IncomeInputData = {
@@ -77,6 +64,28 @@
 		};
 
 		arrayOfIncomeInputData.update((current) => [...current, newEntry]);
+	}
+
+	// test -
+
+	// ------
+
+	//
+	function generateBalances() {
+		// if (incomeDate) {
+		generateDates(incomeDate, incomePaymentFrequency);
+		// }
+	}
+
+	// Calculate balances
+	function calculateBalances(dates: Temporal.PlainDate[]) {
+		regularBalances = [];
+		regularBalances = dates.map((date, i) => {
+			let balance = +regularIncome;
+			balance += regularIncome * i; // Increment by regularIncome * index
+			return balance;
+		});
+		return regularBalances;
 	}
 </script>
 
@@ -102,7 +111,8 @@
 			<button
 				class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
 				on:click={() => {
-					generateDates();
+					// generateDates(incomeDate);
+					generateBalances();
 					addToIncomeInputData();
 				}}
 			>
@@ -141,7 +151,6 @@
 				</ul>
 			</div>
 			<!--  -->
-			<h3>Regular Income Dates XXXX</h3>
 			<div class="flex">
 				<ul class="w-auto p-2 lg:w-auto">
 					{#each datesOfRegularIncome as date}
