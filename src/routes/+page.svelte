@@ -6,6 +6,7 @@
 	import { Temporal } from '@js-temporal/polyfill';
 	import { arrayOfIncomeInputData } from '../stores/stores';
 	import type { IncomeInputData } from '../stores/types';
+	import { D1Transaction } from 'drizzle-orm/d1';
 
 	let regularIncome: number = 0;
 	let monthlySavings: number = 0;
@@ -85,20 +86,27 @@
 		let listOfDatesAndIncomes = [];
 		for (let i = 0; i < data.length; i++) {
 			generateDates(data[i].incomeDate, data[i].incomeFrequency);
-
-			// datesOfRegularIncome.forEach
 			for (let index = 0; index < datesOfRegularIncome.length; index++) {
 				const renderedData = {
+					label: regularIncomeLabel,
 					date: datesOfRegularIncome[index],
 					balance: RegularIncomes[index]
 				};
 				listOfDatesAndIncomes.push(renderedData);
 			}
 		}
-		//
-		listOfDatesAndIncomes.sort((a, b) => Temporal.PlainDate.compare(a.date, b.date));
+		listOfDatesAndIncomes.sort((a, b) => Temporal.PlainDate.compare(a.date, b.date)); // arrange in ascending rder
 
-		// renderedLists = sortListByDate(listOfDatesAndIncomes);
+		if (listOfDatesAndIncomes.length > 1) {
+			listOfDatesAndIncomes.forEach((obj, i) => {
+				if (i > 0) {
+					const calculatedBalance =
+						listOfDatesAndIncomes[i].balance + listOfDatesAndIncomes[i - 1].balance;
+					obj.balance = calculatedBalance;
+				}
+			});
+		}
+
 		renderedLists = listOfDatesAndIncomes;
 
 		//
@@ -173,17 +181,12 @@
 			<!--  -->
 			<div class="flex">
 				<div class="flex w-auto flex-col p-2 lg:w-auto">
-					{#each renderedLists as { date, balance }, i}
+					{#each renderedLists as { label, date, balance }, i}
 						<!-- {#each dates as date} -->
-						<div>{date.toLocaleString()}</div>
+						<div>{label} {date.toLocaleString()} ${balance}</div>
 						<!-- <div>balance: {balance}</div> -->
 
 						<!-- {/each} -->
-					{/each}
-				</div>
-				<div class="flex w-auto flex-col p-2 lg:w-auto">
-					{#each renderedLists as { dates, balance }}
-						<div>{balance}</div>
 					{/each}
 				</div>
 			</div>
