@@ -13,6 +13,7 @@
 	let incomePaymentFrequency: string = 'weekly';
 
 	let datesOfRegularIncome: Temporal.PlainDate[] = [];
+	let RegularIncomes: number[] = [];
 	let regularBalances: number[] = [];
 	let data: IncomeInputData[] = [];
 	let regularIncomeLabel: string;
@@ -50,8 +51,20 @@
 			default:
 				break;
 		}
+		//
+		// Calculate balances
+		function calculateBalances(dates: Temporal.PlainDate[]) {
+			regularBalances = [];
+			regularBalances = dates.map((date, i) => {
+				let balance = +regularIncome;
+				balance += regularIncome * i; // Increment by regularIncome * index
+				return balance;
+			});
+			return regularBalances;
+		}
+		//
+		RegularIncomes = calculateBalances(result);
 		datesOfRegularIncome = result;
-		calculateBalances(datesOfRegularIncome);
 	}
 
 	// Add data to the store
@@ -65,27 +78,34 @@
 
 		arrayOfIncomeInputData.update((current) => [...current, newEntry]);
 	}
-
-	// test -
-
-	// ------
-
 	//
-	function generateBalances() {
-		// if (incomeDate) {
-		generateDates(incomeDate, incomePaymentFrequency);
-		// }
-	}
 
-	// Calculate balances
-	function calculateBalances(dates: Temporal.PlainDate[]) {
-		regularBalances = [];
-		regularBalances = dates.map((date, i) => {
-			let balance = +regularIncome;
-			balance += regularIncome * i; // Increment by regularIncome * index
-			return balance;
-		});
-		return regularBalances;
+	let renderedLists: any[] = [];
+	function generateBalances() {
+		let listOfDatesAndIncomes = [];
+		for (let i = 0; i < data.length; i++) {
+			generateDates(data[i].incomeDate, data[i].incomeFrequency);
+
+			// datesOfRegularIncome.forEach
+			for (let index = 0; index < datesOfRegularIncome.length; index++) {
+				const renderedData = {
+					date: datesOfRegularIncome[index],
+					balance: RegularIncomes[index]
+				};
+				listOfDatesAndIncomes.push(renderedData);
+			}
+		}
+		//
+		listOfDatesAndIncomes.sort((a, b) => Temporal.PlainDate.compare(a.date, b.date));
+
+		// renderedLists = sortListByDate(listOfDatesAndIncomes);
+		renderedLists = listOfDatesAndIncomes;
+
+		//
+		console.log('data', data[0].incomeDate?.toLocaleString());
+		console.log('arrayOfIncomeInputData', arrayOfIncomeInputData);
+		//
+		console.log('renderedLists', renderedLists);
 	}
 </script>
 
@@ -112,8 +132,8 @@
 				class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
 				on:click={() => {
 					// generateDates(incomeDate);
-					generateBalances();
 					addToIncomeInputData();
+					generateBalances();
 				}}
 			>
 				Add
@@ -152,16 +172,20 @@
 			</div>
 			<!--  -->
 			<div class="flex">
-				<ul class="w-auto p-2 lg:w-auto">
-					{#each datesOfRegularIncome as date}
-						Date: <li class="p-2">{date.toLocaleString()}</li>
+				<div class="flex w-auto flex-col p-2 lg:w-auto">
+					{#each renderedLists as { date, balance }, i}
+						<!-- {#each dates as date} -->
+						<div>{date.toLocaleString()}</div>
+						<!-- <div>balance: {balance}</div> -->
+
+						<!-- {/each} -->
 					{/each}
-				</ul>
-				<ul class="w-auto p-2 lg:w-auto">
-					{#each regularBalances as regBalance}
-						Balance: <li class="p-2">{regBalance}</li>
+				</div>
+				<div class="flex w-auto flex-col p-2 lg:w-auto">
+					{#each renderedLists as { dates, balance }}
+						<div>{balance}</div>
 					{/each}
-				</ul>
+				</div>
 			</div>
 		</div>
 	</div>
