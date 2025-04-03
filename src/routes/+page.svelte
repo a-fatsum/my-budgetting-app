@@ -76,11 +76,9 @@
 			incomeAmount: regularIncome,
 			incomeDate: incomeDate
 		};
-
 		arrayOfIncomeInputData.update((current) => [...current, newEntry]);
 	}
 	//
-
 	let renderedLists: any[] = [];
 	function generateBalances() {
 		let listOfDatesAndIncomes = [];
@@ -88,7 +86,7 @@
 			generateDates(data[i].incomeDate, data[i].incomeFrequency);
 			for (let index = 0; index < datesOfRegularIncome.length; index++) {
 				const renderedData = {
-					label: regularIncomeLabel,
+					label: data[i].incomeLabel,
 					date: datesOfRegularIncome[index],
 					balance: RegularIncomes[index]
 				};
@@ -97,23 +95,22 @@
 		}
 		listOfDatesAndIncomes.sort((a, b) => Temporal.PlainDate.compare(a.date, b.date)); // arrange in ascending rder
 
-		if (listOfDatesAndIncomes.length > 1) {
-			listOfDatesAndIncomes.forEach((obj, i) => {
-				if (i > 0) {
-					const calculatedBalance =
-						listOfDatesAndIncomes[i].balance + listOfDatesAndIncomes[i - 1].balance;
-					obj.balance = calculatedBalance;
-				}
-			});
-		}
+		let updatedListOfDatesAndIncomes: any[] = [];
+
+		listOfDatesAndIncomes.forEach((obj, i) => {
+			if (i > 0) {
+				const calculatedBalance = obj.balance + listOfDatesAndIncomes[i - 1].balance;
+				const updatedRenderedData = {
+					label: obj.label,
+					date: obj.date,
+					// balance: calculatedBalance
+					balance: obj.balance
+				};
+				updatedListOfDatesAndIncomes.push(updatedRenderedData);
+			}
+		});
 
 		renderedLists = listOfDatesAndIncomes;
-
-		//
-		console.log('data', data[0].incomeDate?.toLocaleString());
-		console.log('arrayOfIncomeInputData', arrayOfIncomeInputData);
-		//
-		console.log('renderedLists', renderedLists);
 	}
 </script>
 
@@ -182,13 +179,15 @@
 			<div class="flex">
 				<div class="flex w-auto flex-col p-2 lg:w-auto">
 					{#each renderedLists as { label, date, balance }, i}
-						<!-- {#each dates as date} -->
+						<!-- <div>{label} {date.toLocaleString()} ${balance}</div> -->
 						<div>{label} {date.toLocaleString()} ${balance}</div>
-						<!-- <div>balance: {balance}</div> -->
-
-						<!-- {/each} -->
 					{/each}
 				</div>
+				<!-- <div class="flex w-auto flex-col p-2 lg:w-auto">
+					{#each renderedLists as { label, date, balance }, i}
+						<div>{label} {date.toLocaleString()} ${balance}</div>
+					{/each}
+				</div> -->
 			</div>
 		</div>
 	</div>
