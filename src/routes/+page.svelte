@@ -7,15 +7,16 @@
 	import { arrayOfIncomeInputData } from '../stores/stores';
 	import type { IncomeInputData } from '../stores/types';
 	import { D1Transaction } from 'drizzle-orm/d1';
+	import { render } from 'svelte/server';
 
 	let regularIncome: number = 0;
 	let monthlySavings: number = 0;
 	let incomeDate: Temporal.PlainDate | null = null;
-	let incomePaymentFrequency: string = 'weekly';
+	let incomePaymentFrequency: string = 'monthly';
 
 	let datesOfRegularIncome: Temporal.PlainDate[] = [];
-	let RegularIncomes: number[] = [];
-	let regularBalances: number[] = [];
+	// let regularIncomes: number[] = [];
+	let regularBalancesForEachEntry: number[] = [];
 	let data: IncomeInputData[] = [];
 	let regularIncomeLabel: string;
 
@@ -25,28 +26,31 @@
 	});
 
 	// Function to generate income dates
-	function generateDates(incomeDate: Temporal.PlainDate, incomePaymentFrequency: string) {
+	function generateDatesAndBalances(
+		incomeDate: Temporal.PlainDate,
+		incomePaymentFrequency: string
+	) {
 		// if (!incomeDate) return; // Don't generate dates if no start date is provided
 		const start = Temporal.PlainDate.from(incomeDate);
-		let result: Temporal.PlainDate[] = [];
+		let tempDatesOfRegularIncome: Temporal.PlainDate[] = [];
 
 		switch (incomePaymentFrequency) {
 			case 'weekly':
 				for (let i = 0; i < 52; i++) {
 					const nextDate = start.add({ days: i * 7 });
-					result.push(nextDate);
+					tempDatesOfRegularIncome.push(nextDate);
 				}
 				break;
 			case 'fortnightly':
 				for (let i = 0; i < 26; i++) {
 					const nextDate = start.add({ days: i * 14 });
-					result.push(nextDate);
+					tempDatesOfRegularIncome.push(nextDate);
 				}
 				break;
 			case 'monthly':
 				for (let i = 0; i < 12; i++) {
 					const nextDate = start.add({ months: i });
-					result.push(nextDate);
+					tempDatesOfRegularIncome.push(nextDate);
 				}
 				break;
 			default:
@@ -54,18 +58,18 @@
 		}
 		//
 		// Calculate balances
-		function calculateBalances(dates: Temporal.PlainDate[]) {
-			regularBalances = [];
-			regularBalances = dates.map((date, i) => {
+		function calculateBalancesForIncomeEntry(dates: Temporal.PlainDate[]) {
+			regularBalancesForEachEntry = [];
+			regularBalancesForEachEntry = dates.map((date, i) => {
 				let balance = +regularIncome;
 				balance += regularIncome * i; // Increment by regularIncome * index
 				return balance;
 			});
-			return regularBalances;
+			return regularBalancesForEachEntry;
 		}
 		//
-		RegularIncomes = calculateBalances(result);
-		datesOfRegularIncome = result;
+		regularBalancesForEachEntry = calculateBalancesForIncomeEntry(tempDatesOfRegularIncome);
+		datesOfRegularIncome = tempDatesOfRegularIncome;
 	}
 
 	// Add data to the store
@@ -79,39 +83,94 @@
 		arrayOfIncomeInputData.update((current) => [...current, newEntry]);
 	}
 	//
+
 	let renderedLists: any[] = [];
-	function generateBalances() {
-		let listOfDatesAndIncomes = [];
+
+	function generateRenderedData() {
+		// Initialize a temporary array for the new entries
+		let listOfDatesAndIncomes: ConcatArray<any> = [];
+
 		for (let i = 0; i < data.length; i++) {
-			generateDates(data[i].incomeDate, data[i].incomeFrequency);
-			for (let index = 0; index < datesOfRegularIncome.length; index++) {
-				const renderedData = {
-					label: data[i].incomeLabel,
-					date: datesOfRegularIncome[index],
-					balance: RegularIncomes[index]
+			// Generate dates and balances for each data entry
+			generateDatesAndBalances(data[i].incomeDate, data[i].incomeFrequency);
+			// console.log('data[i].incomeDate', data[i].incomeDate);
+			// console.log('data[i].incomeFrequency', data[i].incomeFrequency);
+			// Create a base rendered data object
+			let renderedData = {
+				label: data[i].incomeLabel,
+				date: datesOfRegularIncome[i],
+				balance: regularBalancesForEachEntry[i]
+			};
+			// Use a different variable (j) for the inner loop index to avoid confusion
+			datesOfRegularIncome.forEach((date, j) => {
+				const calculatedBalance = regularBalancesForEachEntry[j];
+				// Create a new object for each iteration instead of reassigning renderedData
+				const currentRenderedData = {
+					label: renderedData.label,
+					date: date,
+					balance: calculatedBalance
 				};
-				listOfDatesAndIncomes.push(renderedData);
-			}
+				listOfDatesAndIncomes.push(currentRenderedData);
+			});
 		}
-		listOfDatesAndIncomes.sort((a, b) => Temporal.PlainDate.compare(a.date, b.date)); // arrange in ascending rder
-
-		let updatedListOfDatesAndIncomes: any[] = [];
-
-		listOfDatesAndIncomes.forEach((obj, i) => {
-			if (i > 0) {
-				const calculatedBalance = obj.balance + listOfDatesAndIncomes[i - 1].balance;
-				const updatedRenderedData = {
-					label: obj.label,
-					date: obj.date,
-					// balance: calculatedBalance
-					balance: obj.balance
-				};
-				updatedListOfDatesAndIncomes.push(updatedRenderedData);
-			}
-		});
-
-		renderedLists = listOfDatesAndIncomes;
+		listOfDatesAndIncomes.sort((a, b) => Temporal.PlainDate.compare(a.date, b.date));
+		// Append new entries to renderedLists without overwriting the old ones
+		renderedLists = renderedLists.concat(listOfDatesAndIncomes);
 	}
+
+	// let renderedLists: any[] = [];
+	// function generateRenderedData() {
+	// 	let listOfDatesAndIncomes: any[] = [];
+	// 	//
+	// 	for (let i = 0; i < data.length; i++) {
+	// 		listOfDatesAndIncomes = [];
+	// 		generateDatesAndBalances(data[i].incomeDate, data[i].incomeFrequency);
+	// 		//
+	// 		console.log('data[i].incomeDate', data[i].incomeDate);
+	// 		console.log('data[i].incomeFrequency', data[i].incomeFrequency);
+	// 		//
+	// 		let renderedData = {
+	// 			label: data[i].incomeLabel,
+	// 			date: datesOfRegularIncome[i],
+	// 			balance: regularBalancesForEachEntry[i]
+	// 		};
+	// 		//
+	// 		datesOfRegularIncome.forEach((date, i) => {
+	// 			// listOfDatesAndIncomes = [];
+	// 			const calculatedBalance = regularBalancesForEachEntry[i];
+	// 			renderedData = {
+	// 				label: renderedData.label,
+	// 				date: renderedData.date,
+	// 				balance: calculatedBalance
+	// 			};
+	// 			listOfDatesAndIncomes.push(renderedData);
+	// 		});
+	// 	}
+
+	// 	// I just want to update listOfDatesAndIncomes without overriding the old values
+	// 	// ****************************
+	// 	// I have an array of objects called data. it contains this const newEntry: IncomeInputData = {
+	// 	// 	incomeLabel: regularIncomeLabel,
+	// 	// 	incomeFrequency: incomePaymentFrequency,
+	// 	// 	incomeAmount: regularIncome,
+	// 	// 	incomeDate: incomeDate
+	// 	// };
+	// 	// This array gets updated everytime the user makes an input and a function is called addToIncomeInputData(). What I want to do is, update this new array called
+	// 	// renderedLists[]. This array contains objects like  const renderedData = {
+	// 	// 		label: data[i].incomeLabel,
+	// 	// 		date: datesOfRegularIncome[i],
+	// 	// 		balance: regularBalancesForEachEntry[i]
+	// 	// 	};
+	// 	// I need the old inputs to remain and for the array renderedLists to just be updated with the new entries
+
+	// 	// ******************************
+	// 	listOfDatesAndIncomes.sort((a, b) => Temporal.PlainDate.compare(a.date, b.date));
+
+	// 	let updatedListOfDatesAndIncomes: any[] = [];
+
+	// 	console.log('listOfDatesAndIncomes', listOfDatesAndIncomes);
+	// 	renderedLists = listOfDatesAndIncomes;
+	// }
 </script>
 
 <div class="shell-wrapper flex text-sm">
@@ -138,7 +197,7 @@
 				on:click={() => {
 					// generateDates(incomeDate);
 					addToIncomeInputData();
-					generateBalances();
+					generateRenderedData();
 				}}
 			>
 				Add
