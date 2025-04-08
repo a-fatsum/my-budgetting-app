@@ -57,18 +57,6 @@
 				break;
 		}
 		//
-		// Calculate balances
-		// function calculateBalancesForIncomeEntry(dates: Temporal.PlainDate[]) {
-		// 	regularBalancesForEachEntry = [];
-		// 	regularBalancesForEachEntry = dates.map((date, i) => {
-		// 		let balance = +regularIncome;
-		// 		balance += regularIncome * i; // Increment by regularIncome * index
-		// 		return balance;
-		// 	});
-		// 	return regularBalancesForEachEntry;
-		// }
-		//
-		// regularBalancesForEachEntry = calculateBalancesForIncomeEntry(tempDatesOfRegularIncome);
 		datesOfRegularIncome = tempDatesOfRegularIncome;
 	}
 	//
@@ -91,31 +79,22 @@
 		};
 		arrayOfIncomeInputData.update((current) => [...current, newEntry]);
 	}
-	//
-
+	// ==========================
 	let renderedLists: any[] = [];
-
 	function generateRenderedData() {
 		regularBalancesForEachEntry = calculateBalancesForIncomeEntry(datesOfRegularIncome);
 
-		// Initialize a temporary array for the new entries
 		let listOfDatesAndIncomes: any[] = [];
 
 		for (let i = 0; i < data.length; i++) {
-			// Generate dates and balances for each data entry
 			generateDatesAndBalances(data[i].incomeDate, data[i].incomeFrequency);
-			// console.log('data[i].incomeDate', data[i].incomeDate);
-			// console.log('data[i].incomeFrequency', data[i].incomeFrequency);
-			// Create a base rendered data object
 			let renderedData = {
 				label: data[i].incomeLabel,
 				date: datesOfRegularIncome[i],
 				balance: regularBalancesForEachEntry[i]
 			};
-			// Use a different variable (j) for the inner loop index to avoid confusion
-			datesOfRegularIncome.forEach((date, j) => {
-				const calculatedBalance = regularBalancesForEachEntry[j];
-				// Create a new object for each iteration instead of reassigning renderedData
+			datesOfRegularIncome.forEach((date, index) => {
+				const calculatedBalance = regularBalancesForEachEntry[index];
 				const currentRenderedData = {
 					label: renderedData.label,
 					date: date,
@@ -124,8 +103,6 @@
 				listOfDatesAndIncomes.push(currentRenderedData);
 			});
 		}
-		// listOfDatesAndIncomes.sort((a, b) => Temporal.PlainDate.compare(a.date, b.date));
-		// Append new entries to renderedLists without overwriting the old ones
 		renderedLists = listOfDatesAndIncomes;
 	}
 
