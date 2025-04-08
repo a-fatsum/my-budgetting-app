@@ -242,11 +242,11 @@
 						<div>{label} {date.toLocaleString()} ${balance}</div>
 					{/each}
 				</div>
-				<!-- <div class="flex w-auto flex-col p-2 lg:w-auto">
+				<div class="flex w-auto flex-col p-2 lg:w-auto">
 					{#each renderedLists as { label, date, balance }, i}
 						<div>{label} {date.toLocaleString()} ${balance}</div>
 					{/each}
-				</div> -->
+				</div>
 			</div>
 		</div>
 	</div>
