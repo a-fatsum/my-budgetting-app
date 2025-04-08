@@ -58,20 +58,29 @@
 		}
 		//
 		// Calculate balances
-		function calculateBalancesForIncomeEntry(dates: Temporal.PlainDate[]) {
-			regularBalancesForEachEntry = [];
-			regularBalancesForEachEntry = dates.map((date, i) => {
-				let balance = +regularIncome;
-				balance += regularIncome * i; // Increment by regularIncome * index
-				return balance;
-			});
-			return regularBalancesForEachEntry;
-		}
+		// function calculateBalancesForIncomeEntry(dates: Temporal.PlainDate[]) {
+		// 	regularBalancesForEachEntry = [];
+		// 	regularBalancesForEachEntry = dates.map((date, i) => {
+		// 		let balance = +regularIncome;
+		// 		balance += regularIncome * i; // Increment by regularIncome * index
+		// 		return balance;
+		// 	});
+		// 	return regularBalancesForEachEntry;
+		// }
 		//
-		regularBalancesForEachEntry = calculateBalancesForIncomeEntry(tempDatesOfRegularIncome);
+		// regularBalancesForEachEntry = calculateBalancesForIncomeEntry(tempDatesOfRegularIncome);
 		datesOfRegularIncome = tempDatesOfRegularIncome;
 	}
-
+	//
+	function calculateBalancesForIncomeEntry(dates: Temporal.PlainDate[]) {
+		regularBalancesForEachEntry = [];
+		regularBalancesForEachEntry = dates.map((date, i) => {
+			let balance = +regularIncome;
+			balance += regularIncome * i; // Increment by regularIncome * index
+			return balance;
+		});
+		return regularBalancesForEachEntry;
+	}
 	// Add data to the store
 	function addToIncomeInputData() {
 		const newEntry: IncomeInputData = {
@@ -87,8 +96,10 @@
 	let renderedLists: any[] = [];
 
 	function generateRenderedData() {
+		regularBalancesForEachEntry = calculateBalancesForIncomeEntry(datesOfRegularIncome);
+
 		// Initialize a temporary array for the new entries
-		let listOfDatesAndIncomes: ConcatArray<any> = [];
+		let listOfDatesAndIncomes: any[] = [];
 
 		for (let i = 0; i < data.length; i++) {
 			// Generate dates and balances for each data entry
@@ -113,9 +124,9 @@
 				listOfDatesAndIncomes.push(currentRenderedData);
 			});
 		}
-		listOfDatesAndIncomes.sort((a, b) => Temporal.PlainDate.compare(a.date, b.date));
+		// listOfDatesAndIncomes.sort((a, b) => Temporal.PlainDate.compare(a.date, b.date));
 		// Append new entries to renderedLists without overwriting the old ones
-		renderedLists = renderedLists.concat(listOfDatesAndIncomes);
+		renderedLists = listOfDatesAndIncomes;
 	}
 
 	// let renderedLists: any[] = [];
