@@ -26,48 +26,50 @@
 	});
 
 	// Function to generate income dates
-	function generateDatesAndBalances(
-		incomeDate: Temporal.PlainDate,
-		incomePaymentFrequency: string
-	) {
-		// if (!incomeDate) return; // Don't generate dates if no start date is provided
+	function generateDatesOfPeriodicPays() {
+		// incomeDate: Temporal.PlainDate,
+		// incomePaymentFrequency: string
+		if (!incomeDate) return; // Don't generate dates if no start date is provided
 		const start = Temporal.PlainDate.from(incomeDate);
-		let tempDatesOfRegularIncome: Temporal.PlainDate[] = [];
+		// let tempDatesOfRegularIncome: Temporal.PlainDate[] = [];
 
 		switch (incomePaymentFrequency) {
 			case 'weekly':
 				for (let i = 0; i < 52; i++) {
 					const nextDate = start.add({ days: i * 7 });
-					tempDatesOfRegularIncome.push(nextDate);
+					// tempDatesOfRegularIncome.push(nextDate);
+					datesOfRegularIncome.push(nextDate);
 				}
 				break;
 			case 'fortnightly':
 				for (let i = 0; i < 26; i++) {
 					const nextDate = start.add({ days: i * 14 });
-					tempDatesOfRegularIncome.push(nextDate);
+					// tempDatesOfRegularIncome.push(nextDate);
+					datesOfRegularIncome.push(nextDate);
 				}
 				break;
 			case 'monthly':
 				for (let i = 0; i < 12; i++) {
 					const nextDate = start.add({ months: i });
-					tempDatesOfRegularIncome.push(nextDate);
+					// tempDatesOfRegularIncome.push(nextDate);
+					datesOfRegularIncome.push(nextDate);
 				}
 				break;
 			default:
 				break;
 		}
 		//
-		datesOfRegularIncome = tempDatesOfRegularIncome;
+		// datesOfRegularIncome = tempDatesOfRegularIncome;
 	}
 	//
-	function calculateBalancesForIncomeEntry(dates: Temporal.PlainDate[]) {
+	function calculateBalancesPerIncomeCycle() {
 		regularBalancesForEachEntry = [];
-		regularBalancesForEachEntry = dates.map((date, i) => {
+		datesOfRegularIncome.forEach((date, i) => {
 			let balance = +regularIncome;
 			balance += regularIncome * i; // Increment by regularIncome * index
-			return balance;
+			regularBalancesForEachEntry.push(balance);
 		});
-		return regularBalancesForEachEntry;
+		// return regularBalancesForEachEntry;
 	}
 	// Add data to the store
 	function addToIncomeInputData() {
@@ -79,31 +81,38 @@
 		};
 		arrayOfIncomeInputData.update((current) => [...current, newEntry]);
 	}
+	//
+	$: {
+		// calculateBalancesPerIncomeCycle();
+	}
 	// ==========================
 	let renderedLists: any[] = [];
 	function generateRenderedData() {
-		regularBalancesForEachEntry = calculateBalancesForIncomeEntry(datesOfRegularIncome);
+		// calculateBalancesPerIncomeCycle();
+		console.log('regularBalancesForEachEntry', regularBalancesForEachEntry);
 
-		let listOfDatesAndIncomes: any[] = [];
-
+		// let listOfDatesAndIncomes: any[] = [];
 		for (let i = 0; i < data.length; i++) {
-			generateDatesAndBalances(data[i].incomeDate, data[i].incomeFrequency);
+			// generateDatesOfPeriodicPays(data[i].incomeDate, data[i].incomeFrequency);
 			let renderedData = {
 				label: data[i].incomeLabel,
 				date: datesOfRegularIncome[i],
 				balance: regularBalancesForEachEntry[i]
 			};
-			datesOfRegularIncome.forEach((date, index) => {
-				const calculatedBalance = regularBalancesForEachEntry[index];
-				const currentRenderedData = {
-					label: renderedData.label,
-					date: date,
-					balance: calculatedBalance
-				};
-				listOfDatesAndIncomes.push(currentRenderedData);
-			});
+			console.log('renderedData', renderedData);
+			// datesOfRegularIncome.forEach((date, index) => {
+			// 	const calculatedBalance = regularBalancesForEachEntry[index];
+			// 	const currentRenderedData = {
+			// 		label: renderedData.label,
+			// 		date: date,
+			// 		balance: calculatedBalance
+			// 	};
+			// 	// listOfDatesAndIncomes.push(currentRenderedData);
+			// 	renderedLists.push(currentRenderedData);
+			// });
 		}
-		renderedLists = listOfDatesAndIncomes;
+		// renderedLists = listOfDatesAndIncomes;
+		console.log('renderedLists', renderedLists);
 	}
 
 	// let renderedLists: any[] = [];
@@ -186,6 +195,8 @@
 					// generateDates(incomeDate);
 					addToIncomeInputData();
 					generateRenderedData();
+					calculateBalancesPerIncomeCycle();
+					generateDatesOfPeriodicPays();
 				}}
 			>
 				Add
